@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Kuis IPA SMP Objek IPA dan Pengamatannya</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+    }
+    .question {
+      margin-bottom: 20px;
+    }
+    .hidden {
+      display: none;
+    }
+    input[type="text"] {
+      width: 300px;
+      margin-bottom: 10px;
+      display: block;
+    }
+    #timer {
+      font-weight: bold;
+      color: red;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Kuis IPA SMP</h2>
+  <h2>By: Torus Manuntun Nababan, M.Pd</h2>
+  <h2>Materi: Objek IPA dan Pengamatannya</h2>
+  <!-- Form Identitas -->
+  <div id="identityForm">
+    <h3>Silakan isi identitas terlebih dahulu:</h3>
+    <label>Nama:
+      <input type="text" id="nama" required>
+    </label>
+    <label>Kelas:
+      <input type="text" id="kelas" required>
+    </label>
+    <label>Tahun Ajaran:
+      <input type="text" id="tahun" required>
+    </label>
+    <label>Nama Sekolah:
+      <input type="text" id="sekolah" required>
+    </label>
+    <button onclick="startQuiz()">Mulai Kuis</button>
+  </div>
+
+  <!-- Timer -->
+  <div id="timer" class="hidden"></div>
+
+  <!-- Form Soal -->
+  <form id="quizForm" class="hidden">
+    <div id="questionsContainer"></div>
+    <button type="button" onclick="submitQuiz()">Selesai dan Lihat Skor</button>
+  </form>
+
+  <div id="result" class="hidden"></div>
+
+  <script>
+    const questions = [
+      { question: "1. Objek yang dipelajari dalam IPA adalah...", options: ["Benda hidup saja", "Benda mati saja", "Alam dan seluruh isinya", "Benda yang dapat dilihat saja"], answer: "Alam dan seluruh isinya" },
+    { question: "2. IPA adalah kependekan dari...", options: ["Ilmu Pengetahuan Alam", "Ilmu Pengetahuan Akal", "Ilmu Pendidikan Anak", "Ilmu Pengamatan Alam"], answer: "Ilmu Pengetahuan Alam" },
+    { question: "3. Langkah awal dalam metode ilmiah adalah...", options: ["Menarik kesimpulan", "Melakukan eksperimen", "Melakukan observasi", "Merumuskan masalah"], answer: "Melakukan observasi" },
+    { question: "4. Tujuan melakukan pengamatan adalah...", options: ["Menebak hasil percobaan", "Menjawab soal ujian", "Mendapatkan data dan informasi", "Menyalin teori dari buku"], answer: "Mendapatkan data dan informasi" },
+    { question: "5. Salah satu ciri IPA adalah...", options: ["Subjektif dan dogmatis", "Dibuktikan melalui eksperimen", "Bersifat pribadi", "Tidak dapat diuji"], answer: "Dibuktikan melalui eksperimen" },
+    { question: "6. Metode ilmiah diawali dengan...", options: ["Percobaan", "Kesimpulan", "Pengamatan", "Teori"], answer: "Pengamatan" },
+    { question: "7. Alat untuk mengukur panjang adalah...", options: ["Stopwatch", "Termometer", "Mistar", "Timbangan"], answer: "Mistar" },
+    { question: "8. Alat ukur waktu yang sering digunakan di laboratorium adalah...", options: ["Mistar", "Termometer", "Stopwatch", "Hygrometer"], answer: "Stopwatch" },
+    { question: "9. Termometer digunakan untuk mengukur...", options: ["Panjang", "Suhu", "Berat", "Volume"], answer: "Suhu" },
+    { question: "10. Neraca digunakan untuk mengukur...", options: ["Volume", "Suhu", "Massa", "Panjang"], answer: "Massa" },
+    { question: "11. Hasil pengukuran harus disertai dengan...", options: ["Nomor percobaan", "Satuan", "Nama peneliti", "Judul laporan"], answer: "Satuan" },
+    { question: "12. Salah satu satuan panjang dalam sistem SI adalah...", options: ["Kilogram", "Liter", "Meter", "Detik"], answer: "Meter" },
+    { question: "13. Mengukur volume benda tak beraturan dapat dilakukan dengan cara...", options: ["Menggunakan mistar", "Menimbang massa", "Mencelupkan ke gelas ukur", "Menggunakan termometer"], answer: "Mencelupkan ke gelas ukur" },
+    { question: "14. Pengamatan dapat dilakukan dengan dua cara, yaitu...", options: ["Langsung dan tidak langsung", "Objektif dan subjektif", "Kualitatif dan kuantitatif", "Manual dan otomatis"], answer: "Kualitatif dan kuantitatif" },
+    { question: "15. Contoh pengamatan kualitatif adalah...", options: ["Berat benda 100 gram", "Panjang benda 20 cm", "Benda berwarna merah", "Suhu air 50°C"], answer: "Benda berwarna merah" },
+    { question: "16. Contoh pengamatan kuantitatif adalah...", options: ["Air terasa panas", "Besi berwarna abu-abu", "Panjang tali 1,5 meter", "Kayu terasa halus"], answer: "Panjang tali 1,5 meter" },
+    { question: "17. Salah satu sifat dari ilmu IPA adalah...", options: ["Berbasis kepercayaan", "Bersifat subjektif", "Didasarkan pada bukti", "Tidak bisa diuji"], answer: "Didasarkan pada bukti" },
+    { question: "18. Satuan massa dalam SI adalah...", options: ["Liter", "Meter", "Kilogram", "Detik"], answer: "Kilogram" },
+    { question: "19. Volume benda padat beraturan dihitung dengan rumus...", options: ["p × l × t", "π × r² × t", "massa ÷ volume", "s × s"], answer: "p × l × t" },
+    { question: "20. Alat yang digunakan untuk mengukur suhu tubuh manusia adalah...", options: ["Termometer", "Barometer", "Voltmeter", "Amperemeter"], answer: "Termometer" }
+  ];
+
+    let quizTimer;
+    let countdownInterval;
+    const timeLimit = 20 * 60 * 1000; // 20 menit
+
+    function startQuiz() {
+      const nama = document.getElementById('nama').value;
+      const kelas = document.getElementById('kelas').value;
+      const tahun = document.getElementById('tahun').value;
+      const sekolah = document.getElementById('sekolah').value;
+
+      if (!nama || !kelas || !tahun || !sekolah) {
+        alert("Harap lengkapi semua data identitas.");
+        return;
+      }
+
+      document.getElementById('identityForm').classList.add('hidden');
+      document.getElementById('quizForm').classList.remove('hidden');
+      document.getElementById('timer').classList.remove('hidden');
+
+      const container = document.getElementById('questionsContainer');
+      container.innerHTML = "";
+      questions.forEach((q, index) => {
+        const div = document.createElement('div');
+        div.classList.add('question');
+        div.innerHTML = `<p>${q.question}</p>` + q.options.map(opt => `
+          <label><input type="radio" name="q${index}" value="${opt}"> ${opt}</label><br>`).join('');
+        container.appendChild(div);
+      });
+
+      // Timer otomatis submit setelah 20 menit
+      quizTimer = setTimeout(() => {
+        alert("Waktu habis! Kuis akan otomatis disubmit.");
+        submitQuiz();
+      }, timeLimit);
+
+      // Countdown display
+      let remaining = timeLimit / 1000;
+      const timerDisplay = document.getElementById('timer');
+      timerDisplay.textContent = `Sisa waktu: ${remaining} detik`;
+      countdownInterval = setInterval(() => {
+        remaining--;
+        timerDisplay.textContent = `Sisa waktu: ${remaining} detik`;
+        if (remaining <= 0) {
+          clearInterval(countdownInterval);
+        }
+      }, 1000);
+    }
+
+    function submitQuiz() {
+      clearTimeout(quizTimer);
+      clearInterval(countdownInterval);
+
+      let score = 0;
+      questions.forEach((q, index) => {
+        const selected = document.querySelector(`input[name="q${index}"]:checked`);
+        if (selected && selected.value === q.answer) {
+          score += 10;
+        }
+      });
+
+      document.getElementById('quizForm').classList.add('hidden');
+      document.getElementById('timer').classList.add('hidden');
+      const resultDiv = document.getElementById('result');
+      resultDiv.classList.remove('hidden');
+
+      const nama = document.getElementById('nama').value;
+      const kelas = document.getElementById('kelas').value;
+      const tahun = document.getElementById('tahun').value;
+      const sekolah = document.getElementById('sekolah').value;
+
+      let message = "";
+      if (score >= 70) {
+        message = "<p style='color: green;'><strong>Selamat!</strong> Anda Sudah Bisa Melanjutkan ke Materi Berikutnya.</p>";
+      } else {
+        message = "<p style='color: red;'><strong>Mohon maaf.</strong> Silakan pelajari kembali materi ini sebelum melanjutkan ke materi berikutnya.</p>";
+      }
+
+      resultDiv.innerHTML = `
+        <h3>Hasil Kuis</h3>
+        <p><strong>Nama:</strong> ${nama}</p>
+        <p><strong>Kelas:</strong> ${kelas}</p>
+        <p><strong>Tahun Ajaran:</strong> ${tahun}</p>
+        <p><strong>Sekolah:</strong> ${sekolah}</p>
+        <p><strong>Skor Anda:</strong> ${score} dari 200</p>
+        ${message}
+      `;
+    }
+  </script>
+</body>
+</html>
